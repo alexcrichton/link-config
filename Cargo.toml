@@ -1,0 +1,10 @@
+[package]
+
+name = "link-config"
+authors = ["Alex Crichton <alex@alexcrichton.com>"]
+version = "0.0.1"
+
+[[lib]]
+
+name = "link-config"
+crate_type = ["dylib"]
