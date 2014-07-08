@@ -1,0 +1,75 @@
+# link-config
+
+A syntax extension for Rust that runs `pkg-config` at build-time to figure how
+how to link native dependencies.
+
+```rust
+#![feature(phase)]
+
+#[phase(plugin)]
+extern crate link_config = "link-config";
+
+link_config!("libcurl")
+
+extern {
+    fn curl_easy_init() -> *mut ();
+}
+
+fn main() {
+    let handle = unsafe { curl_easy_init() };
+    // ...
+}
+```
+
+## Dynamic vs Static linking
+
+An invocation of the `link_config!` macro will generate two extern blocks that
+look like:
+
+```rust
+// foo.rs
+link_config!("mylib")
+
+// foo-expanded.rs
+#[cfg(statik = "mylib")]
+#[link(..., kind = "static")]
+extern {}
+
+#[cfg(not(statik = "mylib"))]
+#[link(...)]
+extern {}
+```
+
+This means that a dynamic dependency is the default, but a static dependency can
+be specified via:
+
+```
+$ rustc foo.rs --cfg 'statik="mylib"'
+```
+
+## How does it work?
+
+When linking native libraries, this syntax extension is interested in answering
+three questions:
+
+* What is the local name of the native library?
+* What are the dependencies of the native library?
+* Where is everything located?
+
+This library is *not* interested in various platform-specific flags to the
+linker and other various configuration options that are not always necessary.
+
+To answer these questions, this library currently shells out to `pkg-config` at
+*build time* with the `--libs` option and filters the return value to answer the
+questions above. For static linking the tool is invoked with `--static`
+
+The syntax extension then generates an `extern` block with appropriate `#[link]`
+and `#[cfg]` attributes.
+
+## TODO list
+
+* Custom rust script to have platform-specific logic for determining libraries
+  and dependencies. This will also be useful for tools that don't necessarily
+  use `pkg-config` like LLVM or postgres.
+* Integrate [`pkgconf`](https://github.com/pkgconf/pkgconf) as a fallback if
+  `pkg-config` is not available.
