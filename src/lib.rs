@@ -5,7 +5,6 @@ extern crate syntax;
 
 use std::gc::Gc;
 use std::io::Command;
-use std::os;
 use std::str;
 
 use rustc::plugin::Registry;
@@ -68,11 +67,8 @@ fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
 fn system_pkgconfig(ecx: &mut ExtCtxt, sp: Span, pkg: &str,
                     statik: bool) -> Option<LibInfo> {
 
-    let mut env = os::env();
-    env.push(("PKG_CONFIG_ALLOW_SYSTEM_LIBS".to_string(), "1".to_string()));
-
     let mut cmd = Command::new("pkg-config");
-    cmd.arg(pkg).arg("--libs").env(env.as_slice());
+    cmd.arg(pkg).arg("--libs").env("PKG_CONFIG_ALLOW_SYSTEM_LIBS", "1");
     if statik {
         cmd.arg("--static");
     }
@@ -176,7 +172,7 @@ fn parse_string(ecx: &mut ExtCtxt,
     match entry.node {
         ast::ExprLit(lit) => {
             match lit.node {
-                ast::LitStr(ref s, _) => return Some((s.to_str(), entry.span)),
+                ast::LitStr(ref s, _) => return Some((s.to_string(), entry.span)),
                 _ => {}
             }
         }
@@ -184,7 +180,7 @@ fn parse_string(ecx: &mut ExtCtxt,
     }
     ecx.span_err(entry.span, format!(
         "expected string literal but got `{}`",
-        pprust::expr_to_str(entry)).as_slice());
+        pprust::expr_to_string(entry)).as_slice());
     None
 }
 
