@@ -15,6 +15,7 @@ use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, DummyResult, MacroDef};
 use syntax::ext::base::MacResult;
 use syntax::ext::build::AstBuilder;
+use syntax::fold::Folder;
 use syntax::parse::parser::Parser;
 use syntax::parse::token;
 use syntax::parse::token::{special_idents, InternedString};
@@ -168,7 +169,7 @@ fn block(ecx: &mut ExtCtxt, sp: Span, info: &LibInfo) -> Gc<ast::Item> {
 
 fn parse_string(ecx: &mut ExtCtxt,
                 parser: &mut Parser) -> Option<(String, Span)> {
-    let entry = ecx.expand_expr(parser.parse_expr());
+    let entry = ecx.expander().fold_expr(parser.parse_expr());
     match entry.node {
         ast::ExprLit(lit) => {
             match lit.node {
@@ -180,7 +181,7 @@ fn parse_string(ecx: &mut ExtCtxt,
     }
     ecx.span_err(entry.span, format!(
         "expected string literal but got `{}`",
-        pprust::expr_to_string(entry)).as_slice());
+        pprust::expr_to_string(&*entry)).as_slice());
     None
 }
 
