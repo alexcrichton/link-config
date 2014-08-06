@@ -47,6 +47,26 @@ be specified via:
 $ rustc foo.rs --cfg 'statik="mylib"'
 ```
 
+## Configuring emission
+
+The full syntax for an invocation is currently:
+
+```rust
+link_config!("foo", ["bar", "baz"])
+```
+
+The library being linked is called `foo` and both `bar`/`baz` are options to the
+`link_config!` macro itself. The currently known options are:
+
+* `only_static` - Only emit a block for a static linkage, and enable it by
+                  default.
+* `only_dylib` - Only emit a block for a dynamic linkage, and enable it by
+                 default.
+* `favor_static` - Instead of emiting `not(statik = "mylib")`, emit
+                   `not(dylib = "mylib")`, favoring the static block by default.
+* `system_static` - Allow system dependencies to be statically linked. This is
+                    not allowed by default.
+
 ## How does it work?
 
 When linking native libraries, this syntax extension is interested in answering
