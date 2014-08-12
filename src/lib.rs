@@ -253,11 +253,18 @@ impl MacResult for MacItems {
 
 // lol hax
 fn cargo_native_dirs() -> Vec<Path> {
-    DynamicLibrary::search_path().move_iter().filter_map(|path| {
-        if !path.ends_with_path(&Path::new("deps")) { return None }
-        let native = path.dir_path().join("native");
-        fs::readdir(&native).ok()
-    }).flat_map(|a| a.move_iter()).collect()
+    match rustc::driver::handle_options(os::args()) {
+        Some(matches) => {
+            matches.opt_strs("L").move_iter().filter_map(|s| {
+                if s.as_slice().contains("native") {
+                    Some(Path::new(s))
+                } else {
+                    None
+                }
+            }).collect()
+        }
+        None => Vec::new()
+    }
 }
 
 fn add_cargo_pkg_config_paths() {
