@@ -7,4 +7,4 @@ version = "0.0.1"
 [[lib]]
 
 name = "link-config"
-crate_type = ["dylib"]
+plugin = true
