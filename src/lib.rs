@@ -46,7 +46,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
 }
 
 fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
-                      tts: &[ast::TokenTree]) -> Box<MacResult> {
+                      tts: &[ast::TokenTree]) -> Box<MacResult+'static> {
     macro_rules! try_dummy( ($e:expr) => (
         match $e { Ok(s) => s, Err(()) => return DummyResult::any(span) }
     ) )
