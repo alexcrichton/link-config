@@ -3,9 +3,8 @@
 extern crate rustc;
 extern crate syntax;
 
-use std::dynamic_lib::DynamicLibrary;
-use std::gc::Gc;
-use std::io::{fs, Command};
+use std::io::Command;
+use std::io::fs::PathExtensions;
 use std::os;
 use std::str;
 use std::sync::{Once, ONCE_INIT};
@@ -14,8 +13,9 @@ use rustc::plugin::Registry;
 use syntax::abi;
 use syntax::ast;
 use syntax::attr;
+use syntax::ptr::P;
 use syntax::codemap::Span;
-use syntax::ext::base::{ExtCtxt, DummyResult, MacroDef};
+use syntax::ext::base::{ExtCtxt, DummyResult};
 use syntax::ext::base::MacResult;
 use syntax::ext::build::AstBuilder;
 use syntax::fold::Folder;
@@ -33,7 +33,7 @@ struct LibInfo {
 }
 
 struct MacItems {
-    items: Vec<Gc<ast::Item>>,
+    items: Vec<P<ast::Item>>,
 }
 
 enum State { Dynamic, Static(SystemDeps) }
@@ -172,7 +172,7 @@ fn system_pkgconfig(ecx: &mut ExtCtxt, sp: Span, pkg: &str,
 }
 
 fn block(ecx: &mut ExtCtxt, sp: Span, info: &LibInfo,
-         favor: Favor) -> Gc<ast::Item> {
+         favor: Favor) -> P<ast::Item> {
     let lib = token::intern_and_get_ident(info.lib.as_slice());
     let s = match favor {
         FavorDynamic => InternedString::new("statik"),
@@ -227,7 +227,7 @@ fn parse_string(ecx: &mut ExtCtxt,
                 parser: &mut Parser) -> Result<(String, Span), ()> {
     let entry = ecx.expander().fold_expr(parser.parse_expr());
     match entry.node {
-        ast::ExprLit(lit) => {
+        ast::ExprLit(ref lit) => {
             match lit.node {
                 ast::LitStr(ref s, _) => return Ok((s.to_string(), entry.span)),
                 _ => {}
@@ -242,13 +242,9 @@ fn parse_string(ecx: &mut ExtCtxt,
 }
 
 impl MacResult for MacItems {
-    fn make_items(&self) -> Option<SmallVector<Gc<ast::Item>>> {
-        Some(self.items.iter().map(|a| a.clone()).collect())
+    fn make_items(self: Box<MacItems>) -> Option<SmallVector<P<ast::Item>>> {
+        Some(self.items.move_iter().collect())
     }
-    fn make_stmt(&self) -> Option<Gc<ast::Stmt>> { None }
-    fn make_def(&self) -> Option<MacroDef> { None }
-    fn make_expr(&self) -> Option<Gc<ast::Expr>> { None }
-    fn make_pat(&self) -> Option<Gc<ast::Pat>> { None }
 }
 
 // lol hax
