@@ -154,7 +154,7 @@ fn system_pkgconfig(ecx: &mut ExtCtxt, sp: Span, pkg: &str,
     };
 
     let cargo_locs = cargo_native_dirs();
-    let libs = libs.move_iter().map(|lib| {
+    let libs = libs.into_iter().map(|lib| {
         let mut candidates = cargo_locs.iter().chain(locs.iter());
         (lib.to_string(), allow_static && candidates.any(|base| {
             (allow_static_system || !base.as_vec().starts_with(b"/usr")) &&
@@ -189,7 +189,7 @@ fn block(ecx: &mut ExtCtxt, sp: Span, info: &LibInfo,
     };
     let cfg = ecx.meta_list(sp, InternedString::new("cfg"), vec![cfg]);
 
-    let attrs = vec![ecx.attribute(sp, cfg)].move_iter();
+    let attrs = vec![ecx.attribute(sp, cfg)].into_iter();
     let attrs = attrs.chain(info.deps.iter().map(|&(ref l, statik)| {
         // Build #[link(name = <l>)]
         let l = token::intern_and_get_ident(l.as_slice());
@@ -243,7 +243,7 @@ fn parse_string(ecx: &mut ExtCtxt,
 
 impl MacResult for MacItems {
     fn make_items(self: Box<MacItems>) -> Option<SmallVector<P<ast::Item>>> {
-        Some(self.items.move_iter().collect())
+        Some(self.items.into_iter().collect())
     }
 }
 
@@ -251,7 +251,7 @@ impl MacResult for MacItems {
 fn cargo_native_dirs() -> Vec<Path> {
     match rustc::driver::handle_options(os::args()) {
         Some(matches) => {
-            matches.opt_strs("L").move_iter().filter_map(|s| {
+            matches.opt_strs("L").into_iter().filter_map(|s| {
                 if s.as_slice().contains("native") {
                     Some(Path::new(s))
                 } else {
