@@ -56,9 +56,9 @@ fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
     let mut favor_dynamic = FavorDynamic;
     let mut dylib_state = Some(Dynamic);
     let mut static_state = Some(Static(SystemDynamic));
-    if parser.eat(&token::COMMA) && parser.eat(&token::LBRACKET) {
-        while !parser.eat(&token::RBRACKET) {
-            parser.eat(&token::COMMA);
+    if parser.eat(&token::Comma) && parser.eat(&token::LBracket) {
+        while !parser.eat(&token::RBracket) {
+            parser.eat(&token::Comma);
             let (modifier, sp) = try_dummy!(parse_string(ecx, &mut parser));
             match modifier.as_slice() {
                 "only_static" => {
@@ -76,7 +76,7 @@ fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
             }
         }
     }
-    if !parser.eat(&token::EOF) {
+    if !parser.eat(&token::Eof) {
         ecx.span_err(parser.span, "only one string literal allowed");
         return DummyResult::any(span);
     }
