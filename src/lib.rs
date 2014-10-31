@@ -56,8 +56,8 @@ fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
     let mut favor_dynamic = FavorDynamic;
     let mut dylib_state = Some(Dynamic);
     let mut static_state = Some(Static(SystemDynamic));
-    if parser.eat(&token::Comma) && parser.eat(&token::LBracket) {
-        while !parser.eat(&token::RBracket) {
+    if parser.eat(&token::Comma) && parser.eat(&token::OpenDelim(token::Bracket)) {
+        while !parser.eat(&token::OpenDelim(token::Bracket)) {
             parser.eat(&token::Comma);
             let (modifier, sp) = try_dummy!(parse_string(ecx, &mut parser));
             match modifier.as_slice() {
