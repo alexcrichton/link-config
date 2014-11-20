@@ -1,4 +1,4 @@
-#![feature(plugin_registrar, macro_rules)]
+#![feature(plugin_registrar, macro_rules, globs)]
 
 extern crate rustc;
 extern crate rustc_trans;
@@ -25,6 +25,10 @@ use syntax::parse::token;
 use syntax::parse::token::{special_idents, InternedString};
 use syntax::print::pprust;
 use syntax::util::small_vector::SmallVector;
+
+use self::State::*;
+use self::SystemDeps::*;
+use self::Favor::*;
 
 struct LibInfo {
     lib: String,
@@ -54,9 +58,9 @@ fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
 
     let mut parser = ecx.new_parser_from_tts(tts);
     let (pkg, sp) = try_dummy!(parse_string(ecx, &mut parser));
-    let mut favor_dynamic = Favor::FavorDynamic;
-    let mut dylib_state = Some(State::Dynamic);
-    let mut static_state = Some(State::Static(SystemDeps::SystemDynamic));
+    let mut favor_dynamic = FavorDynamic;
+    let mut dylib_state = Some(Dynamic);
+    let mut static_state = Some(Static(SystemDynamic));
     if parser.eat(&token::Comma) && parser.eat(&token::OpenDelim(token::Bracket)) {
         while !parser.eat(&token::CloseDelim(token::Bracket)) {
             parser.eat(&token::Comma);
@@ -64,14 +68,14 @@ fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
             match modifier.as_slice() {
                 "only_static" => {
                     dylib_state = None;
-                    favor_dynamic = Favor::FavorStatic;
+                    favor_dynamic = FavorStatic;
                 }
                 "only_dylib" => {
                     static_state = None;
-                    favor_dynamic = Favor::FavorDynamic;
+                    favor_dynamic = FavorDynamic;
                 }
-                "system_static" => static_state = Some(State::Static(SystemDeps::SystemStatic)),
-                "favor_static" => favor_dynamic = Favor::FavorStatic,
+                "system_static" => static_state = Some(Static(SystemStatic)),
+                "favor_static" => favor_dynamic = FavorStatic,
                 s => ecx.span_err(sp, format!("unknown modifier: `{}`",
                                               s).as_slice()),
             }
@@ -108,8 +112,8 @@ fn system_pkgconfig(ecx: &mut ExtCtxt, sp: Span, pkg: &str,
     let mut cmd = Command::new("pkg-config");
     cmd.arg(pkg).arg("--libs").env("PKG_CONFIG_ALLOW_SYSTEM_LIBS", "1");
     match state {
-        State::Static(..) => { cmd.arg("--static"); }
-        State::Dynamic => {}
+        Static(..) => { cmd.arg("--static"); }
+        Dynamic => {}
     }
     let out = match cmd.output() {
         Ok(out) => out,
@@ -146,11 +150,11 @@ fn system_pkgconfig(ecx: &mut ExtCtxt, sp: Span, pkg: &str,
     }
 
     let allow_static = match state {
-        State::Static(..) => true,
+        Static(..) => true,
         _ => false,
     };
     let allow_static_system = match state {
-        State::Static(SystemStatic) => true,
+        Static(SystemStatic) => true,
         _ => false,
     };
 
@@ -176,15 +180,15 @@ fn block(ecx: &mut ExtCtxt, sp: Span, info: &LibInfo,
          favor: Favor) -> P<ast::Item> {
     let lib = token::intern_and_get_ident(info.lib.as_slice());
     let s = match favor {
-        Favor::FavorDynamic => InternedString::new("statik"),
-        Favor::FavorStatic => InternedString::new("dylib"),
+        FavorDynamic => InternedString::new("statik"),
+        FavorStatic => InternedString::new("dylib"),
     };
     let cfg = ecx.meta_name_value(sp, s, ast::LitStr(lib, ast::CookedStr));
     let cfg = match (info.state, favor) {
-        (State::Static(..), Favor::FavorDynamic) |
-        (State::Dynamic, Favor::FavorStatic) => cfg,
-        (State::Dynamic, Favor::FavorDynamic) |
-        (State::Static(..), Favor::FavorStatic) => {
+        (Static(..), FavorDynamic) |
+        (Dynamic, FavorStatic) => cfg,
+        (Dynamic, FavorDynamic) |
+        (Static(..), FavorStatic) => {
             ecx.meta_list(sp, InternedString::new("not"), vec![cfg])
         }
     };
