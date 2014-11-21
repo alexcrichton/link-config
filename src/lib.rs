@@ -1,6 +1,7 @@
-#![feature(plugin_registrar, macro_rules)]
+#![feature(plugin_registrar, macro_rules, globs)]
 
 extern crate rustc;
+extern crate rustc_trans;
 extern crate syntax;
 
 use std::io::Command;
@@ -24,6 +25,10 @@ use syntax::parse::token;
 use syntax::parse::token::{special_idents, InternedString};
 use syntax::print::pprust;
 use syntax::util::small_vector::SmallVector;
+
+use self::State::*;
+use self::SystemDeps::*;
+use self::Favor::*;
 
 struct LibInfo {
     lib: String,
@@ -249,7 +254,7 @@ impl MacResult for MacItems {
 
 // lol hax
 fn cargo_native_dirs() -> Vec<Path> {
-    match rustc::driver::handle_options(os::args()) {
+    match rustc_trans::driver::handle_options(os::args()) {
         Some(matches) => {
             matches.opt_strs("L").into_iter().filter_map(|s| {
                 if s.as_slice().contains("native") {
