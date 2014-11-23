@@ -2,7 +2,13 @@
 
 name = "link-config"
 authors = ["Alex Crichton <alex@alexcrichton.com>"]
-version = "0.0.1"
+version = "0.0.2"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/alexcrichton/link-config"
+description = """
+Compile-time execution of pkg-config to detect what `#[link]` directives should
+be inserted for linking to a native library.
+"""
 
 [lib]
 
