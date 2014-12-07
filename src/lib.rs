@@ -1,7 +1,7 @@
 #![feature(plugin_registrar, macro_rules, globs)]
 
 extern crate rustc;
-extern crate rustc_trans;
+extern crate rustc_driver;
 extern crate syntax;
 
 use std::io::Command;
@@ -215,7 +215,7 @@ fn block(ecx: &mut ExtCtxt, sp: Span, info: &LibInfo,
                                        ast::LitStr(l, ast::CookedStr));
         ecx.attribute(sp, args)
     }));
-    let mut attrs = attrs.map(|attr| {
+    let attrs = attrs.map(|attr| {
         attr::mark_used(&attr);
         attr
     });
@@ -254,7 +254,7 @@ impl MacResult for MacItems {
 
 // lol hax
 fn cargo_native_dirs() -> Vec<Path> {
-    match rustc_trans::driver::handle_options(os::args()) {
+    match rustc_driver::handle_options(os::args()) {
         Some(matches) => {
             matches.opt_strs("L").into_iter().filter_map(|s| {
                 if s.as_slice().contains("native") {
