@@ -41,8 +41,11 @@ struct MacItems {
     items: Vec<P<ast::Item>>,
 }
 
+#[deriving(Copy)]
 enum State { Dynamic, Static(SystemDeps) }
+#[deriving(Copy)]
 enum SystemDeps { SystemDynamic, SystemStatic }
+#[deriving(Copy)]
 enum Favor { FavorDynamic, FavorStatic }
 
 #[plugin_registrar]
