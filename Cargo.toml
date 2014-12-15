@@ -2,7 +2,7 @@
 
 name = "link-config"
 authors = ["Alex Crichton <alex@alexcrichton.com>"]
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/alexcrichton/link-config"
 description = """
