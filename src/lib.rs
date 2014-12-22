@@ -57,7 +57,7 @@ fn expand_link_config(ecx: &mut ExtCtxt, span: Span,
                       tts: &[ast::TokenTree]) -> Box<MacResult+'static> {
     macro_rules! try_dummy( ($e:expr) => (
         match $e { Ok(s) => s, Err(()) => return DummyResult::any(span) }
-    ) )
+    ) );
 
     let mut parser = ecx.new_parser_from_tts(tts);
     let (pkg, sp) = try_dummy!(parse_string(ecx, &mut parser));
