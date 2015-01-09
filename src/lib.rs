@@ -1,4 +1,4 @@
-#![feature(plugin_registrar, macro_rules, globs)]
+#![feature(plugin_registrar)]
 
 extern crate rustc;
 extern crate rustc_driver;
@@ -41,11 +41,11 @@ struct MacItems {
     items: Vec<P<ast::Item>>,
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 enum State { Dynamic, Static(SystemDeps) }
-#[deriving(Copy)]
+#[derive(Copy)]
 enum SystemDeps { SystemDynamic, SystemStatic }
-#[deriving(Copy)]
+#[derive(Copy)]
 enum Favor { FavorDynamic, FavorStatic }
 
 #[plugin_registrar]
@@ -273,7 +273,7 @@ fn cargo_native_dirs() -> Vec<Path> {
 
 fn add_cargo_pkg_config_paths() {
     static mut DONE: Once = ONCE_INIT;
-    unsafe { DONE.doit(add_cargo_pkg_config_paths) }
+    unsafe { DONE.call_once(add_cargo_pkg_config_paths) }
 
     fn add_cargo_pkg_config_paths() {
         let path = os::getenv_as_bytes("PKG_CONFIG_PATH").unwrap_or(Vec::new());
