@@ -1,4 +1,4 @@
-#![feature(plugin_registrar)]
+#![feature(plugin_registrar, box_syntax)]
 
 extern crate rustc;
 extern crate rustc_driver;
