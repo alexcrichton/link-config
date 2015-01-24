@@ -226,7 +226,6 @@ fn block(ecx: &mut ExtCtxt, sp: Span, info: &LibInfo,
     ecx.item(sp, special_idents::invalid, attrs.collect(),
              ast::ItemForeignMod(ast::ForeignMod {
         abi: abi::C,
-        view_items: Vec::new(),
         items: Vec::new(),
     }))
 }
