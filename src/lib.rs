@@ -4,8 +4,8 @@ extern crate rustc;
 extern crate rustc_driver;
 extern crate syntax;
 
-use std::io::Command;
-use std::io::fs::PathExtensions;
+use std::old_io::Command;
+use std::old_io::fs::PathExtensions;
 use std::os;
 use std::str;
 use std::sync::{Once, ONCE_INIT};
